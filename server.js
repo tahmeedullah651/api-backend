@@ -17,6 +17,10 @@ const cors = require('cors');
 
 app.use(cors());
 
+app.get("/", (req, res) => {
+    res.send("hey api is working")
+})
+
 app.use(cookieParser());
 
 app.use(express.json());
