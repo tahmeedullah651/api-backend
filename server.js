@@ -17,6 +17,9 @@ const cors = require('cors');
 
 app.use(cors());
 
+app.get("/",(req,res)=>{
+    res.send("welcome to railway");
+})
 
 app.listen(port, () => {
     console.log(`Listening to port ${port}`);
