@@ -10,12 +10,13 @@ const cors = require('cors');
 
 // global.rootDirectory = path.resolve(__dirname);
 
-// const corsOption = {
-//     origin: 'http://localhost:3000',
-//     credentials: true
-// }
+const corsOption = {
+     origin: 'https://wedbookmobile-yasinafridi1.vercel.app',
+     credentials: true,
+    methods:['GET','POST','HEAD','PUT','PATCH','DELETE']
+ }
 
-app.use(cors());
+app.use(cors(corsOption));
 
 app.get("/",(req,res)=>{
     res.send("welcome to railway");
