@@ -22,21 +22,18 @@ app.listen(port, () => {
     console.log(`Listening to port ${port}`);
 })
 
-app.get("/", (req, res) => {
-    res.send("hey api is working")
-})
 
 app.use(cookieParser());
 
 app.use(express.json());
+app.use('/api', Router);
 
-// mongoose.connect(process.env.DB_URL, {
-//     useUnifiedTopology: true
-// }).then(() => {
-//     console.log("database connected");
-// }).catch((err) => {
-//     console.log(err);
-// })
+mongoose.connect(process.env.DB_URL, {
+    useUnifiedTopology: true
+}).then(() => {
+    console.log("database connected");
+}).catch((err) => {
+    console.log(err);
+})
 
 
-// app.use('/api', Router);
