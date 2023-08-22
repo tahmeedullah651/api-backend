@@ -13,7 +13,7 @@ function dashbaordController() {
                 mediumBudget: 13
             }
             try {
-                const isServiceExist = await ServiceModel.findOne({ vendorId: req.user._id });
+                const isServiceExist = await ServiceModel.findOne({ vendorId: req.params.id });
                 if (!isServiceExist) {
                     return res.status(404).json({ message: "User has not registered any service" });
                 }
