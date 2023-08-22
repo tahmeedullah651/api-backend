@@ -203,36 +203,34 @@ function authController() {
             }
         },
         updatePassword: async (req, res) => {
-            const registerSchema = Joi.object({
-                password: Joi.string()
-                    .pattern(new RegExp('^[a-zA-Z0-9]{5,15}$'))
-                    .required()
-                    .min(8)
-                    .max(15)
-                    .messages({
-                        "string.pattern.base": "Password must include alphabets and numbers",
-                        "string.min": "Password must be minimum 8 character required",
-                        "string.max": "Password must be upto 15 characters "
-                    }),
-                confirmPassword: Joi.ref('password'),
-                phone: Joi.string().trim().regex(/^((0)?)(3)([0-9]{9})$/).required()
-            })
-            const { error } = registerSchema.validate(req.body);
-            if (error) {
-                return res.status(422).json({ message: error.message });
-            }
-            const { password, phone } = req.body;
-            const hashedPassword = await bcrypt.hash(password, 12);
+            try {
+                const registerSchema = Joi.object({
+                    password: Joi.string()
+                        .pattern(new RegExp('^[a-zA-Z0-9]{5,15}$'))
+                        .required()
+                        .min(8)
+                        .max(15)
+                        .messages({
+                            "string.pattern.base": "Password must include alphabets and numbers",
+                            "string.min": "Password must be minimum 8 character required",
+                            "string.max": "Password must be upto 15 characters "
+                        }),
+                    confirmPassword: Joi.ref('password'),
+                    phone: Joi.string().trim().regex(/^((0)?)(3)([0-9]{9})$/).required()
+                })
+                const { error } = registerSchema.validate(req.body);
+                if (error) {
+                    return res.status(422).json({ message: error.message });
+                }
+                const { password, phone } = req.body;
+                const hashedPassword = await bcrypt.hash(password, 12);
 
-            User.findOneAndUpdate({ phone: phone }, { password: hashedPassword }, { new: true }, (err, document) => {
-                if (err) {
-                    return res.status(500).json({ message: 'Internal server error' });
-                }
-                if (!document) {
-                    return res.status(404).json({ message: 'User not found' });
-                }
-                return res.json({ message: 'All ok' })
-            })
+                const docs = await User.findOneAndUpdate({ phone: phone }, { password: hashedPassword }, { new: true });
+                return res.status(200).json({ message: "Password updated successfully" });
+            } catch (error) {
+                console.log(error);
+                return res.status(500).json({ message: "Internal Server Error" });
+            }
 
         },
         // admin: async (req, res) => {
