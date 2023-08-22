@@ -2,6 +2,13 @@
 const HashingService = require('../../../../Services/HashingService');
 const OtpService = require('../../../../Services/OtpService');
 
+
+function formatPhoneNumber(inputNumber) {
+    const phoneNumber = inputNumber.slice(-10);
+    const formattedNumber = `+92${phoneNumber}`
+    return formattedNumber;
+}
+
 class otpController {
     async sendOtp(req, res) {
         const { phone } = req.body;
@@ -14,13 +21,16 @@ class otpController {
         const expire = Date.now() + ttl; // current time + 5 minutes
         const data = `${phone}.${expire}.${otp}`;
         const hashedOtp = await HashingService.hashData(data);
+
+        const formattedNumber = formatPhoneNumber(phone);
         try {
-            await OtpService.sendBysms(phone, otp);
+            await OtpService.sendBysms(formattedNumber, otp);
             return res.json({
                 "hashedOtp": `${hashedOtp}.${expire}`,
                 phone
             })
         } catch (error) {
+            console.log(error);
             return res.status(500).json({ "Message": "Message sending failed" });
         }
     }
