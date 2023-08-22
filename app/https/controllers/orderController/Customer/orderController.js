@@ -89,7 +89,7 @@ function orderController() {
 
         },
         getUserOrders: async (req, res) => {
-            const documents = await CustomerOrder.find({ userId: req.user._id });
+            const documents = await CustomerOrder.find({ userId: req.params.id });
             if (!documents.length) {
                 return res.status(403).json({ message: 'No Order found.' });
             }
@@ -103,76 +103,76 @@ function orderController() {
                 return res.json(orderdata);
             });
         },
-        updateOrder: (req, res) => {
+        updateOrder: async (req, res) => {
             const { phone, _id, customerName, serviceName, eventTime, noOfPersons, startDate, endDate, packageName } = req.body.orderData;
-            CustomerOrder.findOneAndUpdate({ _id: _id }, {
-                serviceId: req.body.orderData.serviceId._id,
-                userId: req.user._id,
-                customerName,
-                serviceName,
-                phone,
-                eventTime,
-                noOfPersons,
-                startDate,
-                endDate,
-                totalCost: req.body.totalOrderCost,
-                packageName,
-                itemSelected: req.body.selectedItem ? req.body.selectedItem : [],
-                charges: req.body.charges,
-                orderStatus: "pending"
-            }, { new: true }, (err, document) => {
-                if (err) {
-                    return res.status(500).json({ message: 'Internal server error' })
+            try {
+                const doc = await CustomerOrder.findOneAndUpdate({ _id: _id }, {
+                    serviceId: req.body.orderData.serviceId._id,
+                    userId: req.user._id,
+                    customerName,
+                    serviceName,
+                    phone,
+                    eventTime,
+                    noOfPersons,
+                    startDate,
+                    endDate,
+                    totalCost: req.body.totalOrderCost,
+                    packageName,
+                    itemSelected: req.body.selectedItem ? req.body.selectedItem : [],
+                    charges: req.body.charges,
+                    orderStatus: "pending"
+                }, { new: true });
+                if (doc) {
+                    return res.status(200).json({ message: "ok" });
                 }
+            } catch (error) {
 
-                return res.json(document);
-            })
+                return res.status(500).json({ message: "Something went wrong" });
+
+            }
         },
-        updateOrderStatus: (req, res) => {
+        updateOrderStatus: async (req, res) => {
             const { id } = req.body;
-            CustomerOrder.findOneAndUpdate({ _id: id }, { orderStatus: 'approved' }, { new: true }, (err, document) => {
-                if (err) {
-                    return res.status(500).json({ message: 'Internal server error' });
+            try {
+                const doc = await CustomerOrder.findOneAndUpdate({ _id: id }, { orderStatus: 'approved' }, { new: true });
+                if (doc) {
+                    return res.status(200).json({ message: "ok" });
                 }
-                if (!document) {
-                    return res.status(404).json({ message: 'Order not found.' });
-                }
-                return res.json({ message: 'All ok' })
-            })
+            } catch (error) {
+
+                return res.status(500).json({ message: "Something went wrong" });
+
+            }
         },
         deleteOrder: async (req, res) => {
-            const { id } = req.body;
-            const doc = await CustomerOrder.findOne({ _id: id });
-            const allRegisteredDates = await orderDates.findOne({ serviceId: doc.serviceId });
-            if (doc && allRegisteredDates) {
-                const newDates = DateServices.removeDates(allRegisteredDates.allDates, doc.startDate, doc.endDate, doc.eventTime);
+            try {
+                const { id } = req.body;
+                const doc = await CustomerOrder.findOne({ _id: id });
+                const allRegisteredDates = await orderDates.findOne({ serviceId: doc.serviceId });
+                if (doc && allRegisteredDates) {
+                    const newDates = DateServices.removeDates(allRegisteredDates.allDates, doc.startDate, doc.endDate, doc.eventTime);
 
-                const result = await CustomerOrder.findByIdAndDelete(id);
-                if (!result) {
-                    return res.status(500).json({ message: 'Something went wrong while deleting order' });
-                }
-                orderDates.findOneAndUpdate(
-                    { _id: allRegisteredDates._id },
-                    { allDates: newDates },
-                    { new: true }, (err, document) => {
-                        if (err) {
-                            return res.status(500).json({ message: 'Internal server error' })
-                        }
+                    const result = await CustomerOrder.findByIdAndDelete(id);
+                    if (!result) {
+                        return res.status(500).json({ message: 'Something went wrong while deleting order' });
                     }
-                )
+
+                    const document = await orderDates.findOneAndUpdate({ _id: allRegisteredDates._id }, { allDates: newDates }, { new: true });
+                    return res.json({ message: 'all ok' });
+                }
+
+            } catch (error) {
+                console.log(error);
+                return res.status(500).json({ message: "Internal Server Error" });
             }
-            return res.json({ message: 'all ok' });
         },
-        completeOrder: (req, res) => {
-            CustomerOrder.findOneAndUpdate({ _id: req.params.id }, { orderStatus: 'completed' }, { new: true }, (err, document) => {
-                if (err) {
-                    return res.status(500).json({ message: 'Internal server error' });
-                }
-                if (!document) {
-                    return res.status(404).json({ message: 'Order not found.' });
-                }
-                return res.json({ message: 'All ok' })
-            })
+        completeOrder: async (req, res) => {
+            try {
+                const doc = await CustomerOrder.findOneAndUpdate({ _id: req.params.id }, { orderStatus: 'completed' }, { new: true });
+                return res.status(200).json({ message: "All ok" });
+            } catch (error) {
+                return res.status(500).json({ message: "Internal Server Error" });
+            }
         }
         // updateOrderAndDates: async (req, res) => {
         //     try {
